@@ -35,7 +35,7 @@ Matrix::Vector Matrix::operator[](size_t index) {
 	return Vector(matrix[index]);
 }
 
-vector<double> Matrix::Gauss(vector<double> b) {
+std::vector<double> Matrix::Gauss(std::vector<double> b) {
 	for (int i = 0; i < n; i++) {
 		if (fabs(matrix[i][i]) < pow(10, -16)) {
 			int j;

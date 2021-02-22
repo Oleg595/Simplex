@@ -1,9 +1,10 @@
 #include"Simplex.h"
 
-Simplex::Simplex(Matrix A, vector<double> st, vector<double> c) {
-	b = A.Gauss(st);
+Simplex::Simplex(Matrix A, std::vector<double> st, std::vector<double> c) {
+	std::vector<double> b = A.Gauss(st);
 	for (size_t i = 0; i < A.get_n(); i++) {
-		vector<double> time_vector;
+		std::vector<double> time_vector;
+		time_vector.push_back(b[i]);
 		for (size_t j = 0; j < A.get_m(); j++) {
 			if (i == j)
 				time_vector.push_back(1.);
@@ -20,88 +21,99 @@ Simplex::Simplex(Matrix A, vector<double> st, vector<double> c) {
 	for (; i < A.get_m(); i++) {
 		func.push_back(0.);
 	}
-	for (size_t i = 0; i < data.size(); i++) {
-		Express(data[i]);
-	}
-	while (!Check()) {
-		size_t max = 0;
-		for (size_t i = 1; i < func.size(); i++) {
-			if (func[i] > func[max]) {
-				max = i;
+	size_t max = 0;
+	int count = 0;
+	while ((max = Check()) != func.size()) {
+		if (count < func.size()) {
+			Choose(max + 1, Determine(max + 1));
+			count++;
+		}
+		else {
+			size_t var;
+			size_t min = data[0].second;
+			for (size_t i = 1; i < data.size(); i++) {
+				if (data[i].second < min) {
+					min = data[i].second;
+				}
 			}
-		}
-		Choose(max);
-	}
-}
-
-double* Simplex::ToDoubleArr(vector<double> vector) {
-	double* arr = new double[vector.size()];
-	for (size_t i = 0; i < vector.size(); i++) {
-		arr[i] = vector[i];
-	}
-	return arr;
-}
-
-bool Simplex::Check() {
-	for (size_t i = 0; i != func.size(); i++) {
-		if (func[i] > 0) {
-			return false;
+			for (size_t i = 0; i < delta.size(); i++) {
+				if (delta[i] > pow(10, -5)) {
+					var = i;
+					break;
+				}
+			}
+			Choose(var + 1, min);
+			count = 0;
 		}
 	}
-	return true;
 }
 
-void Simplex::Express(pair<vector<double>, size_t> d) {
-	size_t num = d.second;
-	vector<double> vector = d.first;
-	for (size_t i = 0; i < vector.size(); i++) {
-		if (i != num) {
-			func[i] += func[num] * vector[i];
+size_t Simplex::Determine(size_t i) {
+	size_t min1 = 0;
+	for (min1 = 0; min1 < data.size(); min1++) {
+		if (fabs(data[min1].first[i]) > pow(10, -5)) {
+			break;
 		}
 	}
-	answer += func[num] * b[num];
-	func[num] = 0;
+	for (size_t j = min1; j < data.size(); j++) {
+		if ((fabs(data[j].first[i]) > pow(10, -5)) && (data[j].first[0] / data[j].first[i] < data[min1].first[0] / data[min1].first[i])) {
+			min1 = j;
+		}
+	}
+	return min1;
 }
 
-/*void Simplex::Choose(size_t i) {
-	size_t min = 0;
-	for (size_t j = 1; j < data.size(); j++) {
-		if (data[j].first[i] / b[j] < data[min].first[i])
-			min = j;
+size_t Simplex::Check() {
+	delta.clear();
+	for (size_t i = 0; i < func.size(); i++) {
+		delta.push_back(-func[i]);
 	}
-	data[min].first[data[min].second] = 1;
-	b[min] /= data[min].first[i];
+	answer = 0;
+	for (size_t i = 0; i < data.size(); i++) {
+		size_t num = data[i].second;
+		answer += func[num] * data[i].first[0];
+		for (size_t j = 0; j < delta.size(); j++) {
+			delta[j] += func[num] * data[i].first[j + 1]; 
+		}
+	}
+	size_t max = 0;
+	for (size_t i = 1; i < delta.size(); i++) {
+		if (delta[max] < delta[i]) {
+			max = i;
+		}
+	}
+	if (delta[max] < pow(10, -5)) {
+		return delta.size();
+	}
+	return max;
+}
+
+void Simplex::Choose(size_t i, size_t min1) {
+	size_t min = min1;
 	for (size_t j = 0; j < data[min].first.size(); j++) {
 		if (j != i) {
 			data[min].first[j] /= data[min].first[i];
 		}
 	}
-	data[min].first[i] = 0.;
-	data[min].second = i;
+	data[min].second = i - 1;
+	data[min].first[i] = 1.;
 	for (size_t j = 0; j < data.size(); j++) {
 		if (j != min) {
 			for (size_t q = 0; q < data[j].first.size(); q++) {
 				if (q != i) {
-					data[j].first[q] += data[min].first[q] * data[j].first[i];
+					data[j].first[q] -= data[min].first[q] * data[j].first[i];
 				}
 			}
 			data[j].first[i] = 0.;
-			b[j] += b[min] * data[j].first[i];
 		}
 	}
-	for (size_t j = 0; j < func.size(); j++) {
-		if (j != i - 1) {
-			func[j] += func[i] * data[min].first[j];
-		}
-	}
-	answer += b[min] * func[i];
-	func[i] = 0.;
-}*/
-
-void Simplex::Choose(size_t i) {
-
 }
 
 void Simplex::Answer() {
-	cout << func[0] << endl;
+	std::cout << "x[i]:" << std::endl;
+	for (size_t i = 0; i < data[0].first.size(); i++) {
+		std::cout << data[0].first[i] << ' ';
+	}
+	std::cout << std::endl;
+	std::cout << "F = " << answer << std::endl;
 }

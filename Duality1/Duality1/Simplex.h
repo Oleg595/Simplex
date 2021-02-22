@@ -2,21 +2,18 @@
 #include"Linear.h"
 #include"Parser.h"
 
-using namespace std;
-
 struct Matrix;
 
 class Simplex {
 public:
-	Simplex(Matrix A, vector<double> b, vector<double> c);
+	Simplex(Matrix A, std::vector<double> b, std::vector<double> c);
 	void Answer();
 private:
-	vector<pair<vector<double>, size_t>> data;//неравенства, в которых переменные, выражаются через другие переменные
-	vector<double> b;//вектор свободных членов
-	vector<double> func;//вектор, содержащий функцию
+	std::vector<std::pair<std::vector<double>, size_t>> data;//неравенства, в которых переменные, выражаются через другие переменные
+	std::vector<double> func;//вектор, содержащий функцию
+	std::vector<double> delta;//вектор delt
 	double answer;//ответ
-	double* ToDoubleArr(vector<double> vector);
-	void Choose(size_t i);
-	bool Check();
-	void Express(pair<vector<double>, size_t> d);
+	void Choose(size_t i, size_t min);
+	size_t Determine(size_t i);
+	size_t Check();
 };
