@@ -25,6 +25,7 @@ public:
 	size_t get_n() const;
 	size_t get_m() const;
 	Matrix get_transposed() const;
+	//double** get_Matrix();
 	std::vector<double> Gauss(std::vector<double> b);
 	void Change_Str(size_t i, size_t j);//меняет местами строки i и j
 	void Change_Col(size_t i, size_t j);//меняем местами столбцы i и j
@@ -54,6 +55,11 @@ public:
 	Linear(std::vector<double>&, Limitations&, std::vector<bool>&);
 
 	std::vector<double> solve_task();
+
+	Matrix get_Matrix();
+	std::vector<double> get_b();
+	std::vector<double> get_func();
+	TT task_Type();
 
 	void create_dual_program();
 	Linear* get_dual_program();

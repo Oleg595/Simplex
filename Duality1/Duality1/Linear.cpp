@@ -36,43 +36,28 @@ Matrix::Vector Matrix::operator[](size_t index) {
 }
 
 std::vector<double> Matrix::Gauss(std::vector<double> b) {
-	for (int i = 0; i < n; i++) {
-		if (fabs(matrix[i][i]) < pow(10, -16)) {
-			int j;
-			for (j = i; j < n; j++) {
-				if (fabs(matrix[j][i]) < pow(10, -16)) {
-					Change_Str(i, j);
-					break;
+	for (size_t i = 0; i < n; i++) {
+		size_t str;
+		for (size_t j = 0; j < m; j++) {
+			if (fabs(matrix[i][j]) > pow(10, -5)) {
+				str = j;
+				break;
+			}
+		}
+		for (size_t j = 0; j < m; j++) {
+			if (j != str)
+				matrix[i][j] /= matrix[i][str];
+		}
+		b[i] /= matrix[i][str];
+		matrix[i][str] = 1.;
+		for (size_t j = 0; j < n; j++) {
+			if (j != i) {
+				for (size_t q = 0; q < m; q++) {
+					if(q != str)
+						matrix[j][q] -= matrix[j][str] * matrix[i][q];
 				}
-			}
-			if (j == n) {
-				for (j = i + 1; j < m; j++) {
-					for (int q = i; q < n; q++) {
-						if (fabs(matrix[j][q]) > pow(10, -16)) {
-							Change_Col(i, j);
-							Change_Str(i, q);
-							break;
-						}
-					}
-				}
-			}
-		}
-		b[i] /= matrix[i][i];
-		for (int j = m - 1; j >= i; j--) {
-			matrix[i][j] /= matrix[i][i];
-		}
-		for (int j = i + 1; j < n; j++) {
-			b[j] -= matrix[j][i] * b[i];
-			for (int q = m - 1; q >= i; q--) {
-				matrix[j][q] -= matrix[i][q] * matrix[j][i];
-			}
-		}
-	}
-	for (int i = n - 1; i > 0; i--) {
-		for (int j = i - 1; j >= 0; j--) {
-			b[j] -= b[i] * matrix[j][i];
-			for (int q = m - 1; q >= i; q--) {
-				matrix[j][q] -= matrix[i][q] * matrix[j][i];
+				b[j] -= matrix[j][str] * b[i];
+				matrix[j][str] = 0.;
 			}
 		}
 	}
@@ -174,6 +159,22 @@ Linear::Linear(std::vector<double>& function, Limitations& limitations, std::vec
 	to_canonical(function, limitations, vars_sign);
 }
 
+Matrix Linear::get_Matrix() {
+	return A;
+}
+
+std::vector<double> Linear::get_b() {
+	return b;
+}
+
+std::vector<double> Linear::get_func() {
+	return objective_function;
+}
+
+TT Linear::task_Type() {
+	return task_type;
+}
+
 void Linear::to_dual(std::vector<double>& function, Limitations& limitations, std::vector<bool>& vars_sign) {
 	std::vector<double> dual_function(limitations.limitations.size());
 	Limitations dual_limitations;
@@ -263,8 +264,8 @@ void Linear::to_canonical(std::vector<double>& function, Limitations& limitation
 	}
 	std::cout << std::endl;
 	//Simplex* simplex = new Simplex(A, ToDoubleArr(b), ToDoubleArr(objective_function));
-	Simplex* simplex = new Simplex(this->A, this->b, this->objective_function);
-	simplex->Answer();
+	/*Simplex* simplex = new Simplex(this->A, this->b, this->objective_function);
+	simplex->Answer();*/
 }
 
 Linear* Linear::get_dual_program() {
